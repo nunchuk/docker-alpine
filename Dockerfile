@@ -6,18 +6,21 @@
 FROM alpine:3.5
 MAINTAINER XinYe <nunchuk@live.com>
 
-ENV TIMEZONE=Asia/Shanghai
-
-# Add AliCloud repository
+# add AliCloud repository
 # > If you are using Aliyun ECS, the package mirror server can be replaced by 
 # > 'mirrors.cloud.aliyuncs.com', via Aliyun private network.
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories
 
-# Set timezone
-RUN apk --update add --no-cache tzdata && \
-	cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
+ENV TIMEZONE=Asia/Shanghai \
+	TIMEZONE_DEPS=tzdata
+
+# set timezone
+RUN set -xe; \
+	apk --update add --no-cache --virtual .build-deps \
+                      $TIMEZONE_DEPS ; \
+	cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime ; \
 	echo ${TIMEZONE} > /etc/timezone
 
-# Clean up
-RUN apk del tzdata && \
+# clean up
+RUN apk del .build-deps && \
 	rm -rf /var/cache/apk/*
